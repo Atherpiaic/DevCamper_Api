@@ -1,36 +1,40 @@
 const express = require("express");
+const Bootcamp = require("../models/Bootcamp");
+const advancedResults = require("../middleware/advancedResult");
+const {
+  getBootCamps,
+  getBootCamp,
+  createBootCamp,
+  updateBootCamp,
+  deleteBootCamps,
+  getBootCampInRadius,
+  bootcampPhotoUpload
+} = require("../controllers/bootcamps.js");
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.status(200).json({ success: true, data: { msg: "Show all bootcamps" } });
-});
+const { protect, authorize } = require("../middleware/auth");
 
-router.get("/:id", (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: { msg: `Show  bootcamps by id ${req.params.id}` }
-  });
-});
+// Include other resource routers
+const courseRouter = require("./courses");
+const reviewsRouter = require("./reviews");
 
-router.post("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: { msg: `Creating new bootcamp` }
-  });
-});
+// Re-route into other resource routers
+router.use("/:bootcampId/courses", courseRouter);
+router.use("/:bootcampId/reviews", reviewsRouter);
 
-router.put("/:id", (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: { msg: `Show  bootcamps by id ${req.params.id}` }
-  });
-});
+router.route("/radius/:zipcode/:distance").get(getBootCampInRadius);
+router
+  .route("/:id/photo")
+  .put(protect, authorize("admin", "publisher"), bootcampPhotoUpload);
+router
+  .route("/")
+  .get(advancedResults(Bootcamp, "Courses"), getBootCamps)
+  .post(protect, createBootCamp);
 
-router.delete("/:id", (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: { msg: `delete  by id ${req.params.id}` }
-  });
-});
+router
+  .route("/:id")
+  .get(getBootCamp)
+  .put(protect, authorize("admin", "publisher"), updateBootCamp)
+  .delete(protect, authorize("admin", "publisher"), deleteBootCamps);
 
 module.exports = router;
