@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const colors = require("colors");
 const dotenv = require("dotenv");
 
-//load env var
+//load env var ather
 dotenv.config({ path: "./config/config" });
 
 //load models
